@@ -6,9 +6,9 @@ import java.io.IOException
 
 class WeatherRepository(private val apiService: WeatherApiService) {
 
-    suspend fun getForecast(cityName: String, apiKey: String): Result<ForecastResponse> {
+    suspend fun getForecast(cityName: String): Result<ForecastResponse> {
         return try {
-            val response = apiService.getForecast(cityName, apiKey).execute()
+            val response = apiService.getForecast(cityName).execute()
             if (response.isSuccessful) {
                 val forecast = response.body()
                 if (forecast != null) {

@@ -1,6 +1,7 @@
 package com.example.myweather.presentation
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myweather.data.ForecastItem
@@ -12,29 +13,31 @@ import com.example.myweather.common.Result
 
 class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() {
 
-    // A stateful list of forecast items
     val forecastList = mutableStateListOf<ForecastItem>()
 
-    // A state to store the city name (optional)
-    var cityName: String = ""
+    var cityName = mutableStateOf("")
+        private set
 
-    fun fetchForecast(city: String, apiKey: String) {
+    val isLoading = mutableStateOf(false)
+
+    fun fetchForecast(city: String) {
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) { repository.getForecast(city, apiKey) }
+            isLoading.value = true
+            val result = withContext(Dispatchers.IO) { repository.getForecast(city) }
 
             // Update the stateful list
             when (result) {
                 is Result.Success -> {
-                    forecastList.clear() // Clear the previous list
-                    forecastList.addAll(result.data.list) // Add the new forecast items
-                    cityName = result.data.city.name // Update the city name
+                    forecastList.clear()
+                    forecastList.addAll(result.data.list)
+                    cityName.value = result.data.city.name
                 }
                 is Result.Error -> {
-                    // Handle error state (optional)
                     forecastList.clear()
-                    cityName = "Error: ${result.message}"
+                    cityName.value = "Error: ${result.message}"
                 }
             }
+            isLoading.value = false
         }
     }
 }
